@@ -1,0 +1,5 @@
+model,overall_rmse
+Train-mean (always predict average),63.45129868679563
+Persistence (Q(t) = Q(t-1)),46.77196716261287
+Linear regression (rain + runoff lags),45.00866687903356
+Linear regression (runoff lags only),43.42343590251624
