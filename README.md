@@ -72,6 +72,27 @@ python main.py
 ```
 
 Results are written to `results/`.
+## Baselines and multi-seed evaluation
+
+To check whether the ANN/LSTM errors are actually good, `baselines_and_seeds.py` compares them with simple models and repeats training with several random seeds. It uses the same train/validation samples and final settings as `main.py`.
+
+```bash
+python baselines_and_seeds.py --no-nn      # baselines only (takes seconds)
+python baselines_and_seeds.py --seeds 5    # baselines + 5 seeds each for ANN and LSTM
+```
+
+Outputs: `results/baseline_metrics.csv` and `results/multi_seed_metrics.csv`.
+
+| Model | Validation RMSE (2008-2012) |
+|---|---|
+| Train-mean predictor | 63.45 |
+| Persistence (Q(t) = Q(t-1)) | 46.77 |
+| Linear regression (rain + runoff lags) | 45.01 |
+| Linear regression (runoff lags only) | 43.42 |
+| ANN (5 seeds, mean ± std) | 44.76 ± 0.44 |
+| LSTM (5 seeds, mean ± std) | 41.03 ± 0.94 |
+
+The LSTM beat the ANN in all 5 seeds. There are no validation days above the 1500 peak threshold, so peak RMSE cannot be computed for this validation period.
 
 ## Output
 
@@ -130,25 +151,21 @@ The code does **not** randomly split the time series.
 
 This is important for time-series experiments because the validation period should be later in time, not randomly mixed with the training period.
 
-## Paper configuration used by this starter
+## Configurations
 
-### ANN
+### Reference paper settings (starting point)
 
-- rainfall lag = 3
-- runoff lag = 4
-- hidden units = 12
-- sigmoid hidden activation
-- linear output
-- learning rate = 0.009
-- maximum epochs = 200
+- **ANN:** rainfall lag = 3, runoff lag = 4, hidden units = 12, sigmoid hidden activation, linear output, learning rate = 0.009, maximum epochs = 200
+- **LSTM:** sequence length = 5, features per timestep = rainfall + runoff, hidden units = 12, learning rate = 0.001, maximum epochs = 200
 
-### LSTM
+### Final settings used in this project (`main.py`)
 
-- sequence length = 5
-- features per timestep = rainfall + runoff
-- hidden units = 12
-- learning rate = 0.001
-- maximum epochs = 200
+The paper's settings were used as a starting point. Hyperparameter experiments on our dataset (`quick_experiment.py`, results in `results/hyperparameter_results.csv`) led to the following final settings:
+
+- **ANN:** rainfall lag = 5, runoff lag = 5, hidden units = 4, sigmoid hidden activation, linear output, learning rate = 0.001, epochs = 200, batch size = 32
+- **LSTM:** sequence length = 7, features per timestep = rainfall + runoff, hidden units = 4, learning rate = 0.0001, epochs = 200, batch size = 32
+
+Note: hyperparameters were chosen using the validation set (no separate test set was held out), so the reported errors may be slightly optimistic.
 
 ### Evaluation
 
